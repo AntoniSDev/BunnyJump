@@ -9,6 +9,9 @@ export default class Game extends Phaser.Scene
   /** @type {Phaser.Physics.Arcade.Sprite} */
   player
   
+  /** @type {Phaser.Types.Input.Keyboard.CursorKeys} */
+  cursors
+  
   constructor()
   {
     super('game')
@@ -20,11 +23,14 @@ export default class Game extends Phaser.Scene
     this.load.image('platform', 'assets/ground_grass.png')
     
     this.load.image('bunny-stand', 'assets/bunny1_stand.png')
+    
+    this.cursors = this.input.keyboard.createCursorKeys()
   }
   
   create()
   {
     this.add.image(240,320, 'background')
+    .setScrollFactor(1, 0)
     this.platforms = this.physics.add.staticGroup()
     for (let i = 0; i < 5; ++i)
     {
@@ -53,7 +59,7 @@ export default class Game extends Phaser.Scene
   }
   
   
-  update()
+  update(t, dt)
   {     
     this.platforms.children.iterate(child => {
       /** @type {Phaser.Physics.Arcade.Sprite} */
@@ -73,5 +79,20 @@ export default class Game extends Phaser.Scene
     {
       this.player.setVelocityY(-300)
     }
+    // left and right input logic
+    if (this.cursors.left.isDown && !touchingDown)
+    {
+      this.player.setVelocityX(-200)
+    }
+    else if (this.cursors.right.isDown && !touchingDown)
+    {
+      this.player.setVelocityX(200)
+    }
+    else
+    {
+      // stop movement if not left or right
+      this.player.setVelocityX(0)
+    }
+    
   }
 }
