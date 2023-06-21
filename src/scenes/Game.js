@@ -32,9 +32,10 @@ export default class Game extends Phaser.Scene
       const body = platform.body
       body.updateFromGameObject()
 
-      this.physics.add.sprite(240, 320, 'bunny-stand')
+      const player = this.physics.add.sprite(240, 320, 'bunny-stand')
       .setScale(0.5)
       
+      this.physics.add.collider(platforms, player)
       
     }
   }
