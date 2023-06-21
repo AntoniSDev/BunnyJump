@@ -29,7 +29,7 @@ export default class Game extends Phaser.Scene
       
       /** @type {Phaser.Physics.Arcade.Sprite} */
       const platform = platforms.create(x, y, 'platform')
-      platform.scale = 0.4
+      platform.scale = 0.1
       
       /** @type {Phaser.Physics.Arcade.StaticBody} */
       const body = platform.body
@@ -44,6 +44,8 @@ export default class Game extends Phaser.Scene
       this.player.body.checkCollision.up = false
       this.player.body.checkCollision.left = false
       this.player.body.checkCollision.right = false
+
+      this.cameras.main.startFollow(this.player)
   }
   
   
