@@ -6,14 +6,17 @@ export default class Game extends Phaser.Scene
   {
     super('game')
   }
-
+  
   preload()
   {
     this.load.image('background', 'assets/bg_layer1.png')    
+    this.load.image('platform', 'assets/ground_grass.png')
   }
-
+  
   create()
   {
     this.add.image(240,320, 'background')
+    this.physics.add.image(240,320, 'platform')
+    .setScale(0.5)
   }
 }
