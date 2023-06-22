@@ -1,4 +1,5 @@
 import Phaser from '../lib/phaser.js'
+import Carrot from '../game/carrot.js'
 
 export default class Game extends Phaser.Scene
 {  
@@ -25,6 +26,8 @@ export default class Game extends Phaser.Scene
     this.load.image('bunny-stand', 'assets/bunny1_stand.png')
     
     this.cursors = this.input.keyboard.createCursorKeys()
+    
+    this.load.image('carrot', 'assets/carrot.png')
   }
   
   create()
@@ -45,10 +48,14 @@ export default class Game extends Phaser.Scene
       /** @type {Phaser.Physics.Arcade.StaticBody} */
       const body = platform.body
       body.updateFromGameObject()
+      
+      const carrot = new Carrot(this, 240, 320, 'carrot')
+      this.add.existing(carrot)
+      
     }
     
     this.player = this.physics.add.sprite(240, 320, 'bunny-stand')
-    .setScale(0.5)
+    .setScale(1)
     
     this.physics.add.collider(this.platforms, this.player)    
     
@@ -71,10 +78,11 @@ export default class Game extends Phaser.Scene
       const scrollY = this.cameras.main.scrollY
       if (platform.y >= scrollY + 700)
       {
-        platform.y = scrollY - Phaser.Math.Between(10, 50)
-        platform.x = Phaser.Math.Between(50, 550)
+        platform.y = scrollY - Phaser.Math.Between(-30, -10)
+        platform.x = Phaser.Math.Between(80, 420)
         platform.body.updateFromGameObject()
       }
+      
       
     })
     
@@ -87,11 +95,11 @@ export default class Game extends Phaser.Scene
     // left and right input logic
     if (this.cursors.left.isDown && !touchingDown)
     {
-      this.player.setVelocityX(-450)
+      this.player.setVelocityX(-500)
     }
     else if (this.cursors.right.isDown && !touchingDown)
     {
-      this.player.setVelocityX(450)
+      this.player.setVelocityX(500)
     }
     else
     {
