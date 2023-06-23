@@ -92,7 +92,7 @@ export default class Game extends Phaser.Scene
     this.cameras.main.setDeadzone(this.scale.width * 1.5)
     
     this.physics.add.collider(this.platforms, this.carrots)
-
+    
     this.physics.add.overlap(
       this.player,
       this.carrots,
@@ -128,7 +128,7 @@ export default class Game extends Phaser.Scene
       
       if (touchingDown)
       {
-        this.player.setVelocityY(-1500)
+        this.player.setVelocityY(-1700)
       }
       // left and right input logic
       if (this.cursors.left.isDown && !touchingDown)
@@ -148,14 +148,39 @@ export default class Game extends Phaser.Scene
       this.horizontalWrap(this.player)
       
     }
-
+    
+    /**
+    * @param {Phaser.GameObjects.Sprite} sprite
+    */
+    addCarrotAbove(sprite) {
+      const y = sprite.y - sprite.displayHeight;
+      
+      /** @type {Phaser.Physics.Arcade.Sprite} */
+      const carrot = this.carrots.get(sprite.x, y, 'carrot');
+      
+      // Set active and visible
+      carrot.setActive(true);
+      carrot.setVisible(true);
+      
+      this.add.existing(carrot);
+      
+      // Update the physics body size
+      carrot.body.setSize(carrot.width, carrot.height);
+      
+      // Make sure the body is enabled in the physics world
+      this.physics.world.enable(carrot);
+      
+      return carrot;
+    }
+    
+    
     handleCollectCarrot(player, carrot) {
       // Masquer la carotte et désactiver son corps physique
       carrot.setVisible(false);
       carrot.body.enable = false;    
-   
+      
     }
-
+    
     horizontalWrap(sprite)
     {
       const halfWidth = sprite.displayWidth * 0.5
@@ -168,8 +193,8 @@ export default class Game extends Phaser.Scene
         sprite.x = -halfWidth
       }
     }
-
     
-
+    
+    
     
   }
