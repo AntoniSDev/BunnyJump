@@ -3,6 +3,7 @@ import Carrot from '../game/carrot.js'
 
 export default class Game extends Phaser.Scene
 {  
+  carrotsCollected = 0
   
   /** @type {Phaser.Physics.Arcade.StaticGroup} */
   platforms
@@ -42,6 +43,7 @@ export default class Game extends Phaser.Scene
   
   preload()
   {
+    
     this.load.image('background', 'assets/bg_layer1.png')    
     this.load.image('platform', 'assets/ground_grass.png')
     
@@ -50,6 +52,7 @@ export default class Game extends Phaser.Scene
     this.cursors = this.input.keyboard.createCursorKeys()
     
     this.load.image('carrot', 'assets/carrot.png')
+  
   }
   
   create()
@@ -101,6 +104,10 @@ export default class Game extends Phaser.Scene
       this
       )
       
+      const style = { fontFamily: 'plasdrip', fontSize: 32, color: '#FF3F3F' };
+      this.add.text(240, 10, 'Death Count: 0', style)
+        .setScrollFactor(0)
+        .setOrigin(0.5, 0);    
     }
     
     
@@ -126,30 +133,30 @@ export default class Game extends Phaser.Scene
       const spaceBar = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE)
       const keyQ = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Q)
       const keyD = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D)
-  
+      
       const touchingDown = this.player.body.touching.down
-  
+      
       if (spaceBar.isDown && touchingDown)
       {
-          this.player.setVelocityY(-1700)
+        this.player.setVelocityY(-1700)
       }
-  
+      
       // Modifier ces conditions pour vérifier si les touches Q et D sont enfoncées
       if ((this.cursors.left.isDown || keyQ.isDown))
       {
-          this.player.setVelocityX(-500)
+        this.player.setVelocityX(-500)
       }
       else if ((this.cursors.right.isDown || keyD.isDown))
       {
-          this.player.setVelocityX(500)
+        this.player.setVelocityX(500)
       }
       else
       {
-          this.player.setVelocityX(0)
+        this.player.setVelocityX(0)
       }
-  
+      
       this.horizontalWrap(this.player)
-  }
+    }
     
     /**
     * @param {Phaser.GameObjects.Sprite} sprite
@@ -177,9 +184,20 @@ export default class Game extends Phaser.Scene
     
     
     handleCollectCarrot(player, carrot) {
+      
+      this.carrots.killAndHide(carrot)
+      
+      this.physics.world.disableBody(carrot.body)
+      
+      // increment by 1
+      this.carrotsCollected++
+      
+      
       // Masquer la carotte et désactiver son corps physique
       carrot.setVisible(false);
-      carrot.body.enable = false;    
+      carrot.body.enable = false;   
+      
+      
       
     }
     
