@@ -13,6 +13,28 @@ export default class Game extends Phaser.Scene
   /** @type {Phaser.Types.Input.Keyboard.CursorKeys} */
   cursors
   
+  /** @type {Phaser.Physics.Arcade.Group} */
+  carrots
+  
+  /**
+  * @param {Phaser.GameObjects.Sprite} sprite
+  */
+  addCarrotAbove(sprite)
+  {
+    const y = sprite.y - sprite.displayHeight
+    
+    /** @type {Phaser.Physics.Arcade.Sprite} */
+    const carrot = this.carrots.get(sprite.x, y, 'carrot')
+    
+    this.add.existing(carrot)
+    
+    // update the physics body size
+    carrot.body.setSize(carrot.width, carrot.height)
+    
+    return carrot
+  }
+  
+  
   constructor()
   {
     super('game')
@@ -36,6 +58,12 @@ export default class Game extends Phaser.Scene
     this.add.image(240,320, 'background')
     .setScrollFactor(1, 0)
     this.platforms = this.physics.add.staticGroup()
+    
+    this.carrots = this.physics.add.group({
+      classType: Carrot
+    })
+    this.carrots.get(240, 320, 'carrot')    
+    
     for (let i = 0; i < 5; ++i)
     {
       const x = Phaser.Math.Between(50, 550)
@@ -47,11 +75,7 @@ export default class Game extends Phaser.Scene
       
       /** @type {Phaser.Physics.Arcade.StaticBody} */
       const body = platform.body
-      body.updateFromGameObject()
-      
-      const carrot = new Carrot(this, 240, 320, 'carrot')
-      this.add.existing(carrot)
-      
+      body.updateFromGameObject()     
     }
     
     this.player = this.physics.add.sprite(240, 320, 'bunny-stand')
@@ -66,60 +90,86 @@ export default class Game extends Phaser.Scene
     this.cameras.main.startFollow(this.player)
     
     this.cameras.main.setDeadzone(this.scale.width * 1.5)
-  }
-  
-  
-  update(t, dt)
-  {     
-    this.platforms.children.iterate(child => {
-      /** @type {Phaser.Physics.Arcade.Sprite} */
-      const platform = child
+    
+    this.physics.add.collider(this.platforms, this.carrots)
+
+    this.physics.add.overlap(
+      this.player,
+      this.carrots,
+      this.handleCollectCarrot, // called on overlap
+      undefined,
+      this
+      )
       
-      const scrollY = this.cameras.main.scrollY
-      if (platform.y >= scrollY + 700)
+    }
+    
+    
+    update(t, dt)
+    {     
+      this.platforms.children.iterate(child => {
+        /** @type {Phaser.Physics.Arcade.Sprite} */
+        const platform = child
+        
+        const scrollY = this.cameras.main.scrollY
+        if (platform.y >= scrollY + 700)
+        {
+          platform.y = scrollY - Phaser.Math.Between(-30, -10)
+          platform.x = Phaser.Math.Between(80, 420)
+          platform.body.updateFromGameObject()
+          
+          this.addCarrotAbove(platform)
+          
+        }
+        
+        
+      })
+      
+      const touchingDown = this.player.body.touching.down
+      
+      if (touchingDown)
       {
-        platform.y = scrollY - Phaser.Math.Between(-30, -10)
-        platform.x = Phaser.Math.Between(80, 420)
-        platform.body.updateFromGameObject()
+        this.player.setVelocityY(-1500)
+      }
+      // left and right input logic
+      if (this.cursors.left.isDown && !touchingDown)
+      {
+        this.player.setVelocityX(-500)
+      }
+      else if (this.cursors.right.isDown && !touchingDown)
+      {
+        this.player.setVelocityX(500)
+      }
+      else
+      {
+        // stop movement if not left or right
+        this.player.setVelocityX(0)
       }
       
+      this.horizontalWrap(this.player)
       
-    })
+    }
+
+    handleCollectCarrot(player, carrot) {
+      // Masquer la carotte et désactiver son corps physique
+      carrot.setVisible(false);
+      carrot.body.enable = false;    
+   
+    }
+
+    horizontalWrap(sprite)
+    {
+      const halfWidth = sprite.displayWidth * 0.5
+      const gameWidth = this.scale.width
+      if (sprite.x < -halfWidth)
+      {
+        sprite.x = gameWidth + halfWidth
+      } else if (sprite.x > gameWidth + halfWidth)
+      {
+        sprite.x = -halfWidth
+      }
+    }
+
     
-    const touchingDown = this.player.body.touching.down
-    
-    if (touchingDown)
-    {
-      this.player.setVelocityY(-1500)
-    }
-    // left and right input logic
-    if (this.cursors.left.isDown && !touchingDown)
-    {
-      this.player.setVelocityX(-500)
-    }
-    else if (this.cursors.right.isDown && !touchingDown)
-    {
-      this.player.setVelocityX(500)
-    }
-    else
-    {
-      // stop movement if not left or right
-      this.player.setVelocityX(0)
-    }
-    
-    this.horizontalWrap(this.player)
+
     
   }
-  horizontalWrap(sprite)
-  {
-    const halfWidth = sprite.displayWidth * 0.5
-    const gameWidth = this.scale.width
-    if (sprite.x < -halfWidth)
-    {
-      sprite.x = gameWidth + halfWidth
-    } else if (sprite.x > gameWidth + halfWidth)
-    {
-      sprite.x = -halfWidth
-    }
-  }
-}
