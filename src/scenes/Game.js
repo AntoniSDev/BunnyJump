@@ -123,31 +123,33 @@ export default class Game extends Phaser.Scene
         
         
       })
-      
+      const spaceBar = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE)
+      const keyQ = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Q)
+      const keyD = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D)
+  
       const touchingDown = this.player.body.touching.down
-      
-      if (touchingDown)
+  
+      if (spaceBar.isDown && touchingDown)
       {
-        this.player.setVelocityY(-1700)
+          this.player.setVelocityY(-1700)
       }
-      // left and right input logic
-      if (this.cursors.left.isDown && !touchingDown)
+  
+      // Modifier ces conditions pour vérifier si les touches Q et D sont enfoncées
+      if ((this.cursors.left.isDown || keyQ.isDown))
       {
-        this.player.setVelocityX(-500)
+          this.player.setVelocityX(-500)
       }
-      else if (this.cursors.right.isDown && !touchingDown)
+      else if ((this.cursors.right.isDown || keyD.isDown))
       {
-        this.player.setVelocityX(500)
+          this.player.setVelocityX(500)
       }
       else
       {
-        // stop movement if not left or right
-        this.player.setVelocityX(0)
+          this.player.setVelocityX(0)
       }
-      
+  
       this.horizontalWrap(this.player)
-      
-    }
+  }
     
     /**
     * @param {Phaser.GameObjects.Sprite} sprite
