@@ -52,7 +52,8 @@ export default class Game extends Phaser.Scene
   
   preload()
   {
-    
+    this.load.spritesheet('leftleft', 'assets/leftleft.png')
+
     this.load.image('background', 'assets/bg_layer1.png')    
     this.load.image('platform', 'assets/ground_grass.png')
     
@@ -118,8 +119,41 @@ export default class Game extends Phaser.Scene
       this
       )
       
-      const style = { fontFamily: 'plasdrip', fontSize: 36, color: '#FF3F3F' };
-      this.carrotsCollectedText = this.add.text(240, 10, 'Death Countdown: 0', style)
+      // Initialiser le compteur à 10
+      this.counter = 10;
+      
+      // Définir l'intervalle de temps initial entre chaque décrémentation du compteur
+      this.interval = 1000;
+      
+      // Définir une fonction pour décrémenter le compteur et mettre à jour l'affichage
+      this.decrementCounter = () => {
+        // Décrémenter le compteur
+        this.counter--;
+        
+        // Mettre à jour l'affichage du compteur
+        this.carrotsCollectedText.text = `Death Countdown: ${this.counter}`;
+        
+        // Vérifier si le compteur a atteint 0
+        if (this.counter === 0) {
+          // Si oui, démarrer la scène game-over
+          this.scene.start('game-over');
+        } else {
+          // Sinon, réduire l'intervalle de temps entre chaque décrémentation du compteur
+          this.interval *= 0.98;
+          
+          // Appeler la fonction decrementCounter après le nouvel intervalle de temps
+          setTimeout(this.decrementCounter, this.interval);
+        }
+      };
+      
+      // Appeler la fonction decrementCounter après l'intervalle de temps initial
+      setTimeout(this.decrementCounter, this.interval);
+      
+      
+      
+      
+      const style = { fontFamily: 'plasdrip', fontSize: 40, color: '#FF1F1F' };
+      this.carrotsCollectedText = this.add.text(240, 420, '', style)
       .setScrollFactor(0)
       .setOrigin(0.5, 0);  
       
@@ -155,7 +189,7 @@ export default class Game extends Phaser.Scene
         const scrollY = this.cameras.main.scrollY
         if (platform.y >= scrollY + 700)
         {
-          platform.y = scrollY - Phaser.Math.Between(-30, -10)
+          platform.y = scrollY - Phaser.Math.Between(-50, -30)
           platform.x = Phaser.Math.Between(80, 420)
           platform.body.updateFromGameObject()
           
@@ -206,7 +240,7 @@ export default class Game extends Phaser.Scene
       this.horizontalWrap(this.player)
       
       const bottomPlatform = this.findBottomMostPlatform()
-      if (this.player.y > bottomPlatform.y + 2000)
+      if (this.player.y > bottomPlatform.y + 2500)
       {
         this.scene.start('game-over')
       }
@@ -244,14 +278,10 @@ export default class Game extends Phaser.Scene
       this.physics.world.disableBody(carrot.body)
       
       // increment by 1
-      this.carrotsCollected++
-      
-      const value = `Death Countdown: ${this.carrotsCollected}`
-      this.carrotsCollectedText.text = value
-      
-      
-      
-      
+      this.carrotsCollected++;
+      this.counter++; // Augmenter la valeur de this.counter
+      const value = `Death Countdown: ${this.counter}`; // Mettre à jour la valeur de value
+      this.carrotsCollectedText.text = value; // Mettre à jour l'affichage du compteur
       
       
     }
