@@ -17,6 +17,9 @@ export default class Game extends Phaser.Scene
   /** @type {Phaser.Physics.Arcade.Group} */
   carrots
   
+  /** @type {Phaser.GameObjects.Text} */
+  carrotsCollectedText
+  
   /**
   * @param {Phaser.GameObjects.Sprite} sprite
   */
@@ -25,7 +28,7 @@ export default class Game extends Phaser.Scene
     const y = sprite.y - sprite.displayHeight
     
     /** @type {Phaser.Physics.Arcade.Sprite} */
-    const carrot = this.carrots.get(sprite.x, y, 'carrot')
+    
     
     this.add.existing(carrot)
     
@@ -41,18 +44,29 @@ export default class Game extends Phaser.Scene
     super('game')
   }
   
+  init()
+  {
+    this.carrotsCollected = 0
+  }
+  
+  
   preload()
   {
     
     this.load.image('background', 'assets/bg_layer1.png')    
     this.load.image('platform', 'assets/ground_grass.png')
     
-    this.load.image('bunny-stand', 'assets/bunny1_stand.png')
+    this.load.image('bunny-stand', 'assets/bunny1_stand.png')    
+    
+    this.load.image('bunny-right1', 'assets/right1.png')
+    this.load.image('bunny-right2', 'assets/right2.png')
+    this.load.image('bunny-left1', 'assets/left1.png')
+    this.load.image('bunny-left2', 'assets/left2.png')
     
     this.cursors = this.input.keyboard.createCursorKeys()
     
     this.load.image('carrot', 'assets/carrot.png')
-  
+    
   }
   
   create()
@@ -65,11 +79,11 @@ export default class Game extends Phaser.Scene
     this.carrots = this.physics.add.group({
       classType: Carrot
     })
-    this.carrots.get(240, 320, 'carrot')    
+    
     
     for (let i = 0; i < 5; ++i)
     {
-      const x = Phaser.Math.Between(50, 550)
+      const x = Phaser.Math.Between(80, 400)
       const y = 150 * i 
       
       /** @type {Phaser.Physics.Arcade.Sprite} */
@@ -104,10 +118,31 @@ export default class Game extends Phaser.Scene
       this
       )
       
-      const style = { fontFamily: 'plasdrip', fontSize: 32, color: '#FF3F3F' };
-      this.add.text(240, 10, 'Death Count: 0', style)
-        .setScrollFactor(0)
-        .setOrigin(0.5, 0);    
+      const style = { fontFamily: 'plasdrip', fontSize: 36, color: '#FF3F3F' };
+      this.carrotsCollectedText = this.add.text(240, 10, 'Death Countdown: 0', style)
+      .setScrollFactor(0)
+      .setOrigin(0.5, 0);  
+      
+      this.anims.create({
+        key: 'left',
+        frames: [
+          { key: 'bunny-left1' },
+          { key: 'bunny-left2' }
+        ],
+        frameRate: 10,
+        repeat: -1
+      });  
+      
+      this.anims.create({
+        key: 'right',
+        frames: [
+          { key: 'bunny-right1' },
+          { key: 'bunny-right2' }
+        ],
+        frameRate: 10,
+        repeat: -1
+      });
+      
     }
     
     
@@ -138,24 +173,43 @@ export default class Game extends Phaser.Scene
       
       if (spaceBar.isDown && touchingDown)
       {
-        this.player.setVelocityY(-1700)
+        this.player.setVelocityY(-1550)    
       }
       
       // Modifier ces conditions pour vérifier si les touches Q et D sont enfoncées
       if ((this.cursors.left.isDown || keyQ.isDown))
       {
-        this.player.setVelocityX(-500)
+        this.player.setVelocityX(-450)
+        this.player.anims.play('left', true);
       }
       else if ((this.cursors.right.isDown || keyD.isDown))
       {
-        this.player.setVelocityX(500)
+        this.player.setVelocityX(450)
+        this.player.anims.play('right', true);
       }
       else
       {
-        this.player.setVelocityX(0)
+        this.player.setVelocityX(0)                     
       }
       
+      const vx = this.player.body.velocity.x
+      const vy = this.player.body.velocity.y
+      
+      if (vx == 0 && this.player.texture.key !== 'bunny-stand')
+      {          
+        this.player.setTexture('bunny-stand')
+      }
+      
+      
+      
+      
       this.horizontalWrap(this.player)
+      
+      const bottomPlatform = this.findBottomMostPlatform()
+      if (this.player.y > bottomPlatform.y + 2000)
+      {
+        this.scene.start('game-over')
+      }
     }
     
     /**
@@ -192,10 +246,11 @@ export default class Game extends Phaser.Scene
       // increment by 1
       this.carrotsCollected++
       
+      const value = `Death Countdown: ${this.carrotsCollected}`
+      this.carrotsCollectedText.text = value
       
-      // Masquer la carotte et désactiver son corps physique
-      carrot.setVisible(false);
-      carrot.body.enable = false;   
+      
+      
       
       
       
@@ -213,6 +268,28 @@ export default class Game extends Phaser.Scene
         sprite.x = -halfWidth
       }
     }
+    
+    findBottomMostPlatform()
+    {
+      const platforms = this.platforms.getChildren()
+      let bottomPlatform = platforms[0]
+      
+      for (let i = 1; i < platforms.length; ++i)
+      {
+        const platform = platforms[i]
+        
+        // discard any platforms that are above current
+        if (platform.y < bottomPlatform.y)
+        {
+          continue
+        }
+        
+        bottomPlatform = platform
+      }
+      
+      return bottomPlatform
+    }
+    
     
     
     
